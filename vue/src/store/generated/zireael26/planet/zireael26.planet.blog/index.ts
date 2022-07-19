@@ -5,9 +5,10 @@ import { NoData } from "./module/types/blog/packet"
 import { Params } from "./module/types/blog/params"
 import { Post } from "./module/types/blog/post"
 import { SentPost } from "./module/types/blog/sent_post"
+import { TimedoutPost } from "./module/types/blog/timedout_post"
 
 
-export { BlogPacketData, NoData, Params, Post, SentPost };
+export { BlogPacketData, NoData, Params, Post, SentPost, TimedoutPost };
 
 async function initTxClient(vuexGetters) {
 	return await txClient(vuexGetters['common/wallet/signer'], {
@@ -50,6 +51,8 @@ const getDefaultState = () => {
 				PostAll: {},
 				SentPost: {},
 				SentPostAll: {},
+				TimedoutPost: {},
+				TimedoutPostAll: {},
 				
 				_Structure: {
 						BlogPacketData: getStructure(BlogPacketData.fromPartial({})),
@@ -57,6 +60,7 @@ const getDefaultState = () => {
 						Params: getStructure(Params.fromPartial({})),
 						Post: getStructure(Post.fromPartial({})),
 						SentPost: getStructure(SentPost.fromPartial({})),
+						TimedoutPost: getStructure(TimedoutPost.fromPartial({})),
 						
 		},
 		_Registry: registry,
@@ -114,6 +118,18 @@ export default {
 						(<any> params).query=null
 					}
 			return state.SentPostAll[JSON.stringify(params)] ?? {}
+		},
+				getTimedoutPost: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.TimedoutPost[JSON.stringify(params)] ?? {}
+		},
+				getTimedoutPostAll: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.TimedoutPostAll[JSON.stringify(params)] ?? {}
 		},
 				
 		getTypeStructure: (state) => (type) => {
@@ -262,6 +278,54 @@ export default {
 				return getters['getSentPostAll']( { params: {...key}, query}) ?? {}
 			} catch (e) {
 				throw new Error('QueryClient:QuerySentPostAll API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryTimedoutPost({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const queryClient=await initQueryClient(rootGetters)
+				let value= (await queryClient.queryTimedoutPost( key.id)).data
+				
+					
+				commit('QUERY', { query: 'TimedoutPost', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryTimedoutPost', payload: { options: { all }, params: {...key},query }})
+				return getters['getTimedoutPost']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryTimedoutPost API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryTimedoutPostAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const queryClient=await initQueryClient(rootGetters)
+				let value= (await queryClient.queryTimedoutPostAll(query)).data
+				
+					
+				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
+					let next_values=(await queryClient.queryTimedoutPostAll({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					value = mergeResults(value, next_values);
+				}
+				commit('QUERY', { query: 'TimedoutPostAll', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryTimedoutPostAll', payload: { options: { all }, params: {...key},query }})
+				return getters['getTimedoutPostAll']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryTimedoutPostAll API Node Unavailable. Could not perform query: ' + e.message)
 				
 			}
 		},
