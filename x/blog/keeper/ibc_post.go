@@ -110,7 +110,7 @@ func (k Keeper) OnAcknowledgementIbcPostPacket(ctx sdk.Context, packet channelty
 			ctx,
 			types.SentPost{
 				Creator: data.Creator,
-				PostID:  data.PostID,
+				PostID:  packetAck.PostID,
 				Title:   data.Title,
 				Chain:   packet.DestinationPort + "-" + packet.DestinationChannel,
 			},
@@ -127,6 +127,14 @@ func (k Keeper) OnAcknowledgementIbcPostPacket(ctx sdk.Context, packet channelty
 func (k Keeper) OnTimeoutIbcPostPacket(ctx sdk.Context, packet channeltypes.Packet, data types.IbcPostPacketData) error {
 
 	// TODO: packet timeout logic
+	k.AppendTimedoutPost(
+		ctx,
+		types.TimedoutPost{
+			Creator: data.Creator,
+			Title:   data.Title,
+			Chain:   packet.DestinationPort + "-" + packet.DestinationChannel,
+		},
+	)
 
 	return nil
 }
